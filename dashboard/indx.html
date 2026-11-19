@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart LPG Monitoring System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <header class="header">
+            <h1>Smart LPG Monitor</h1>
+            <p>Real-time cylinder monitoring and leakage detection</p>
+        </header>
+
+        <div class="alert-banner">
+            <h2>Gas Leakage Status</h2>
+            <p>Waiting for sensor data...</p>
+        </div>
+
+        <div class="card-grid">
+            <section class="card">
+                <h2>Cylinder Status</h2>
+
+                <div class="cylinder-container">
+                    <div class="cylinder">
+                        <div class="cylinder-handle"></div>
+                        <div class="cylinder-fill"></div>
+                        <span class="cylinder-percent">--%</span>
+                    </div>
+
+                    <div class="cylinder-info">
+                        <p>Remaining LPG</p>
+                        <h2>-- kg</h2>
+                        <p>Capacity: 3 kg</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="card">
+                <h2>Estimated Days Remaining</h2>
+                <p>-- days</p>
+            </section>
+
+            <section class="card">
+                <h2>MQ-5 Gas Sensor</h2>
+                <p>Reading: --</p>
+            </section>
+        </div>
+
+        <section class="card">
+            <h2>Consumption History</h2>
+            <p>Graph will appear here.</p>
+        </section>
+
+        <div class="card-grid">
+            <section class="card">
+                <h2>Cooking Sessions</h2>
+                <p>Session tracking will appear here.</p>
+            </section>
+
+            <section class="card">
+                <h2>LPG Cost</h2>
+                <p>Cost calculations will appear here.</p>
+            </section>
+        </div>
+
+    </div>
+</body>
+
+</html>
