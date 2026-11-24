@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 
 # Local credentials
-secrets.py
+wificred.py
 .env
 .env.*
 

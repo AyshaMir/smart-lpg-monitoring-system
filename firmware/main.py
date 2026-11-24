@@ -1,6 +1,5 @@
-"""Smart LPG main loop: cooperative millisecond scheduler, no sleep().
+"""Smart LPG main loop
 
-Set credentials in firmware/secrets.py (gitignored).
 Do not run this entry point on desktop CPython.
 """
 from timebase import ticks_ms, ticks_diff
@@ -11,13 +10,14 @@ from alerts import AlertController
 from indicators import IndicatorController
 
 try:
-    from secrets import WIFI_SSID, WIFI_PASSWORD
+    from wificred import WIFI_SSID, WIFI_PASSWORD
 except ImportError:
-    raise RuntimeError("Create firmware/secrets.py from secrets.example.py")
+    raise RuntimeError("Create firmware/wificred.py from secrets.example.py")
 
 SENSOR_PERIOD_MS = 200
 INDICATOR_PERIOD_MS = 20
 WIFI_PERIOD_MS = 1000
+PRINT_PERIOD_MS = 1000
 
 
 def main():
@@ -31,6 +31,7 @@ def main():
     last_sensor = None
     last_indicator = None
     last_wifi = None
+    last_print = None
     fresh_sample = False
     last_ip = None
     try:
@@ -40,6 +41,14 @@ def main():
                 last_sensor = now
                 data = sensors.poll(now)
                 fresh_sample = True
+
+            if last_print is None or ticks_diff(now, last_print) >= PRINT_PERIOD_MS:
+                last_print = now
+
+                print("MQ-5 Voltage:", data["mq5_voltage"], "V")
+                print("MQ-5 Status:", data["gas_status"])
+                print("Leak Detected:", data["leak"])
+                print("------------------------")
 
             if last_indicator is None or ticks_diff(now, last_indicator) >= INDICATOR_PERIOD_MS:
                 last_indicator = now
