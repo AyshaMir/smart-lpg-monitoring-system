@@ -1,18 +1,13 @@
+"""MQ-5 periodic diagnostic. Run on Pico; no sleep()."""
 from machine import ADC, Pin
-from time import sleep
+from time import ticks_ms, ticks_diff
 
-# MQ-5 analog output connected to GP26
 mq5 = ADC(Pin(26))
-
+last = ticks_ms() - 1000
 print("Starting MQ-5 sensor test...")
-
 while True:
-    # Read sensor value
-    raw = mq5.read_u16()
-
-    # Convert to Pico ADC input voltage
-    voltage = (raw / 65535) * 3.3
-
-    print("MQ-5 Raw:", raw, "| ADC Voltage:", round(voltage, 2), "V")
-
-    sleep(1)
+    now = ticks_ms()
+    if ticks_diff(now, last) >= 1000:
+        last = now
+        raw = mq5.read_u16()
+        print("MQ-5 Raw:", raw, "| ADC Voltage:", round(raw * 3.3 / 65535, 2), "V")

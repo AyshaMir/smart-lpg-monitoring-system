@@ -1,50 +1,47 @@
+"""HX711 raw diagnostic using timer-paced polling, not sleep().
 
+Pins 27/26 reflect OLD separate test wiring and CONFLICT with MQ-5 GP26.
+Verify wiring before running simultaneously with MQ-5 or main firmware.
+"""
 from machine import Pin
-from time import sleep, sleep_us, ticks_us, ticks_diff
+from time import ticks_ms, ticks_us, ticks_diff
 
-dt = Pin(27, Pin.IN)
-sck = Pin(26, Pin.OUT, value=0)
+DT_PIN = 27
+SCK_PIN = 26
+
+dt = Pin(DT_PIN, Pin.IN)
+sck = Pin(SCK_PIN, Pin.OUT, value=0)
 
 
-def read_hx711():
+def pulse_wait():
     start = ticks_us()
+    while ticks_diff(ticks_us(), start) < 2:
+        pass  # HX711 timing-critical, approximately 2 us
 
-    # Wait until HX711 has data ready
-    while dt.value() == 1:
-        if ticks_diff(ticks_us(), start) > 1000000:
-            raise OSError("HX711 not responding")
 
+def read_raw_if_ready():
+    if dt.value() != 0:
+        return None
     value = 0
-
-    # Read 24 bits
-    for i in range(24):
+    for _ in range(24):
         sck.on()
-        sleep_us(1)
-
+        pulse_wait()
         value = (value << 1) | dt.value()
-
         sck.off()
-        sleep_us(1)
-
-    # 25th pulse selects channel A, gain 128
+        pulse_wait()
     sck.on()
-    sleep_us(1)
+    pulse_wait()
     sck.off()
-
-    # Convert signed 24-bit reading
     if value & 0x800000:
         value -= 0x1000000
-
     return value
 
 
+last = ticks_ms() - 500
 print("Starting HX711 raw reading test...")
-
 while True:
-    try:
-        reading = read_hx711()
-        print("Raw reading:", reading)
-    except OSError as error:
-        print(error)
-
-    sleep(0.5)
+    now = ticks_ms()
+    if ticks_diff(now, last) >= 500:
+        last = now
+        reading = read_raw_if_ready()
+        print("Raw reading:", reading if reading is not None else "not ready")
