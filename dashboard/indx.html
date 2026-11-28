@@ -3,8 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart LPG Monitoring System</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
@@ -13,13 +12,13 @@
 <body>
   <main class="dashboard">
 
+    <!-- HEADER -->
     <header class="header">
       <h1>Smart LPG Monitor</h1>
-      <p>
-        Real-time cylinder monitoring and gas sensor response
-      </p>
+      <p>Real-time LPG monitoring and leakage detection</p>
     </header>
 
+    <!-- DATA SOURCE -->
     <section class="card connection-panel">
       <div class="connection-heading">
         <strong>Data source</strong>
@@ -30,11 +29,9 @@
 
       <div class="source-row">
         <label>
-          <input type="radio" name="source"
-                 value="demo" checked>
+          <input type="radio" name="source" value="demo" checked>
           Demo (no Pico needed)
         </label>
-
         <label>
           <input type="radio" name="source" value="live">
           Live Pico API
@@ -43,7 +40,6 @@
 
       <div class="source-row">
         <label for="api-url">Pico API URL</label>
-
         <input
           id="api-url"
           type="url"
@@ -51,153 +47,251 @@
           placeholder="http://PICO_IP/api/status"
           disabled
         >
-
-        <button id="refresh-btn" type="button">
-          Refresh
-        </button>
+        <button id="refresh-btn" type="button">Refresh</button>
       </div>
 
       <p class="small-note" id="last-update">
         Showing simulated readings.
       </p>
 
-      <div id="demo-controls"
-           class="source-row demo-controls">
+      <div id="demo-controls" class="source-row demo-controls">
         <span>Try:</span>
-
-        <button data-demo="normal" type="button">
-          Normal (80%)
-        </button>
-
-        <button data-demo="low" type="button">
-          Low LPG (20%)
-        </button>
-
-        <button data-demo="leak" type="button">
-          Possible leak
-        </button>
-
-        <button data-demo="fault" type="button">
-          Sensor fault
-        </button>
+        <button data-demo="normal" type="button">Normal (80%)</button>
+        <button data-demo="low" type="button">Low LPG (20%)</button>
+        <button data-demo="leak" type="button">Possible leak</button>
+        <button data-demo="fault" type="button">Sensor fault</button>
       </div>
     </section>
 
-    <section id="alert-banner"
-             class="alert-banner"
-             role="status">
+    <!-- STATUS BANNER -->
+    <section id="alert-banner" class="alert-banner" role="status">
       <h2>System Status</h2>
-      <p id="alert-text">
-        Waiting for sensor data...
-      </p>
+      <p id="alert-text">Waiting for sensor data...</p>
     </section>
 
-    <div class="card-grid">
+    <!-- TABS -->
+    <nav class="dashboard-tabs" aria-label="Dashboard sections">
+      <button type="button" class="tab-button active"
+              data-tab="monitor" aria-selected="true">Monitor</button>
+      <button type="button" class="tab-button"
+              data-tab="history" aria-selected="false">History</button>
+      <button type="button" class="tab-button"
+              data-tab="cooking" aria-selected="false">Cooking Sessions</button>
+      <button type="button" class="tab-button"
+              data-tab="costs" aria-selected="false">Costs</button>
+    </nav>
+
+    <!-- MONITOR -->
+    <section id="tab-monitor" class="tab-panel">
+      <div class="card-grid">
+
+        <section class="card">
+          <h2>Cylinder Status</h2>
+          <div class="cylinder-container">
+            <div class="cylinder">
+              <div class="cylinder-handle"></div>
+              <div id="cylinder-fill" class="cylinder-fill"></div>
+              <span id="cylinder-percent" class="cylinder-percent">--%</span>
+            </div>
+            <div class="cylinder-info">
+              <p>Remaining LPG</p>
+              <h2 id="gas-kg">-- kg</h2>
+              <p>Capacity: 3 kg (provisional)</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Estimated Days Remaining</h2>
+          <p id="days-left" class="metric">--</p>
+          <p id="consumption-rate" class="small-note">
+            Average consumption: unavailable
+          </p>
+          <p class="small-note">
+            Estimated using recorded daily LPG usage.
+          </p>
+          <button id="simulate-usage-btn"
+                  class="simulation-btn" type="button">
+            Simulate 7 Days of Usage
+          </button>
+          <p id="prediction-note" class="small-note">
+            Not enough consumption data yet.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>MQ-5 Gas Sensor</h2>
+          <p id="mq5-reading" class="metric">-- V</p>
+          <p id="mq5-status">Status: unavailable</p>
+        </section>
+
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="tab-history" class="tab-panel" hidden>
+      <section class="card" id="history-panel">
+        <h2>Sensor History</h2>
+        <p class="small-note">
+          Readings are saved in this browser.
+          Demo and live history are stored separately.
+        </p>
+
+        <div class="source-row history-toolbar">
+          <label for="history-metric">Show:</label>
+          <select id="history-metric">
+            <option value="gas_kg">Remaining gas (kg)</option>
+            <option value="mq5_voltage">MQ-5 voltage (V)</option>
+          </select>
+          <button id="sample-btn" type="button">Add demo sample</button>
+          <button id="csv-btn" type="button">Export CSV</button>
+          <button id="clear-history-btn" type="button">
+            Clear current history
+          </button>
+        </div>
+
+        <div class="chart-box">
+          <canvas id="history-chart" role="img"
+                  aria-label="Sensor history graph"></canvas>
+        </div>
+        <p id="history-info" class="small-note">
+          No samples recorded.
+        </p>
+      </section>
+    </section>
+
+    <!-- COOKING SESSIONS -->
+    <section id="tab-cooking" class="tab-panel" hidden>
+      <section class="card">
+        <h2>Cooking Session Tracker</h2>
+        <p>Track cooking time, gas consumption and cost.</p>
+
+        <div class="session-status-box">
+          <span id="session-status">No active session</span>
+          <h2 id="session-timer">00:00:00</h2>
+        </div>
+
+        <div class="session-details">
+          <p>Starting LPG:
+            <strong id="session-start-weight">-- kg</strong>
+          </p>
+          <p>Current LPG:
+            <strong id="session-current-weight">-- kg</strong>
+          </p>
+          <p>Gas used:
+            <strong id="session-usage">-- kg</strong>
+          </p>
+          <p>Estimated cost:
+            <strong id="session-cost">Rs. --</strong>
+          </p>
+        </div>
+
+        <div class="session-buttons">
+          <button id="start-session-btn" class="session-primary">
+            Start Session
+          </button>
+          <button id="end-session-btn" disabled>End Session</button>
+          <button id="simulate-cooking-btn" disabled>
+            Simulate 0.10 kg Used
+          </button>
+        </div>
+
+        <p id="session-message" class="small-note">
+          Select Demo mode to test without the Pico.
+        </p>
+      </section>
 
       <section class="card">
-        <h2>Cylinder Status</h2>
-
-        <div class="cylinder-container">
-
-          <div class="cylinder">
-            <div class="cylinder-handle"></div>
-            <div id="cylinder-fill"
-                 class="cylinder-fill"></div>
-            <span id="cylinder-percent"
-                  class="cylinder-percent">--%</span>
-          </div>
-
-          <div class="cylinder-info">
-            <p>Remaining LPG</p>
-            <h2 id="gas-kg">-- kg</h2>
-            <p>Capacity: 3 kg (provisional)</p>
-          </div>
-
+        <div class="session-history-heading">
+          <h2>Previous Cooking Sessions</h2>
+          <button id="clear-sessions-btn" class="session-clear">
+            Clear History
+          </button>
+        </div>
+        <div id="session-history">
+          <p>No cooking sessions recorded yet.</p>
         </div>
       </section>
-
-      <section class="card">
-        <h2>Estimated Days Remaining</h2>
-        <p id="days-left" class="metric">--</p>
-        <p class="small-note">
-          Requires consumption history
-        </p>
-      </section>
-
-      <section class="card">
-        <h2>MQ-5 Gas Sensor</h2>
-        <p id="mq5-reading" class="metric">-- V</p>
-        <p id="mq5-status">
-          Status: unavailable
-        </p>
-      </section>
-
-    </div>
-
-    <!-- SENSOR HISTORY -->
-    <section class="card" id="history-panel">
-      <h2>Sensor History</h2>
-
-      <p class="small-note">
-        Readings are saved in this browser.
-        Demo and live history are stored separately.
-        Real LPG usage requires load-cell calibration.
-      </p>
-
-      <div class="source-row history-toolbar">
-
-        <label for="history-metric">Show:</label>
-
-        <select id="history-metric">
-          <option value="gas_kg">
-            Remaining gas (kg)
-          </option>
-
-          <option value="mq5_voltage">
-            MQ-5 voltage (V)
-          </option>
-        </select>
-
-        <button id="sample-btn" type="button">
-          Add demo sample
-        </button>
-
-        <button id="csv-btn" type="button">
-          Export CSV
-        </button>
-
-        <button id="clear-history-btn" type="button">
-          Clear current history
-        </button>
-      </div>
-
-      <div class="chart-box">
-        <canvas
-          id="history-chart"
-          role="img"
-          aria-label="Sensor history graph">
-        </canvas>
-      </div>
-
-      <p id="history-info" class="small-note">
-        No samples recorded.
-      </p>
-
     </section>
 
-    <div class="card-grid">
+    <!-- COSTS -->
+    <section id="tab-costs" class="tab-panel" hidden>
 
       <section class="card">
-        <h2>Cooking Sessions</h2>
-        <p>Session tracking will appear here.</p>
+        <h2>LPG Cost Calculator</h2>
+        <p>
+          Enter the LPG price per kilogram to calculate estimated costs.
+        </p>
+        <div class="cost-input-group">
+          <label for="lpg-price">LPG Price (PKR per kg)</label>
+          <input
+            type="number"
+            id="lpg-price"
+            min="0"
+            step="0.01"
+            placeholder="Enter price per kg"
+          >
+        </div>
+        <p class="small-note">
+          Price is saved automatically in this browser.
+        </p>
       </section>
+
+      <div class="card-grid">
+        <section class="card cost-card">
+          <h2>Remaining Gas Value</h2>
+          <p id="remaining-cost" class="cost-value">Rs. --</p>
+          <p class="small-note">
+            Value of LPG currently remaining.
+          </p>
+        </section>
+
+        <section class="card cost-card">
+          <h2>Estimated Gas Used</h2>
+          <p id="used-cost" class="cost-value">Rs. --</p>
+          <p id="used-gas-info" class="small-note">
+            Requires valid weight data.
+          </p>
+        </section>
+
+        <section class="card cost-card">
+          <h2>Estimated Refill Cost</h2>
+          <p id="refill-cost" class="cost-value">Rs. --</p>
+          <p id="refill-gas-info" class="small-note">
+            Cost to refill to 3 kg.
+          </p>
+        </section>
+      </div>
 
       <section class="card">
-        <h2>LPG Cost</h2>
-        <p>Cost calculations will appear here.</p>
-      </section>
+        <h2>Cost Summary</h2>
 
-    </div>
+        <div class="cost-summary-row">
+          <span>LPG capacity</span>
+          <strong>3.00 kg</strong>
+        </div>
+
+        <div class="cost-summary-row">
+          <span>Remaining LPG</span>
+          <strong id="cost-gas-kg">-- kg</strong>
+        </div>
+
+        <div class="cost-summary-row">
+          <span>Gas used since full (estimated)</span>
+          <strong id="cost-used-kg">-- kg</strong>
+        </div>
+
+        <div class="cost-summary-row">
+          <span>Full refill price</span>
+          <strong id="full-refill-cost">Rs. --</strong>
+        </div>
+
+        <p class="small-note">
+          Usage calculations assume the container started full,
+          with no refills since. Demo readings are simulated.
+        </p>
+      </section>
+    </section>
 
   </main>
 </body>

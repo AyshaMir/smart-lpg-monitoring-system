@@ -1,26 +1,21 @@
-"""Wrap-safe monotonic time helpers (MicroPython or desktop CPython)."""
-try:
-    import time as _time
-    _ticks_ms = _time.ticks_ms
-    _ticks_us = _time.ticks_us
-    _ticks_diff = _time.ticks_diff
-except AttributeError:
-    import time as _time
-    _ticks_ms = None
-    _ticks_us = None
-    _ticks_diff = None
+"""Timing helpers for MicroPython and desktop Python."""
+import time
+
+_ticks_ms = getattr(time, "ticks_ms", None)
+_ticks_us = getattr(time, "ticks_us", None)
+_ticks_diff = getattr(time, "ticks_diff", None)
 
 
 def ticks_ms():
     if _ticks_ms is not None:
         return _ticks_ms()
-    return int(_time.monotonic() * 1000)
+    return int(getattr(time, "monotonic")() * 1000)
 
 
 def ticks_us():
     if _ticks_us is not None:
         return _ticks_us()
-    return int(_time.monotonic() * 1000000)
+    return int(getattr(time, "monotonic")() * 1000000)
 
 
 def ticks_diff(new, old):

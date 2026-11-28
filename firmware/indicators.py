@@ -1,6 +1,6 @@
 """Apply alert decisions to LEDs and shared buzzer without sleeping."""
 class IndicatorController:
-    def __init__(self, green_pin=13, yellow_pin=14, red_pin=15,
+    def __init__(self, green_pin=13, yellow_pin=14, red_pin=12,
                  buzzer_pin=16, green=None, yellow=None, red=None, buzzer=None):
         if green is None and yellow is None and red is None and buzzer is None:
             from machine import Pin, PWM

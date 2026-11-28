@@ -55,5 +55,23 @@ assert run(80, False, 2000)["state"] == LEAK_DETECTED
 assert run(80, False, 2200)["state"] == NORMAL
 assert run(None, False, 2400)["state"] == FAULT
 assert [x.v for x in leds] == [0,0,0]
+# Leak detection without a working load cell
+assert run(None, True, 2600)["state"] == LEAK_DETECTED
+assert leds[2].v == 1
+assert b.v > 0
+
+# Verify repeated beeping
+assert run(None, True, 2900, False)["buzzer_on"] is False
+assert run(None, True, 3400, False)["buzzer_on"] is True
+
+# Leak must remain active for three fresh normal readings
+assert run(None, False, 3600)["state"] == LEAK_DETECTED
+assert run(None, False, 3620, False)["state"] == LEAK_DETECTED
+assert run(None, False, 3800)["state"] == LEAK_DETECTED
+assert run(None, False, 4000)["state"] == FAULT
+
+# Verify indicators turn off after clearing
+assert [x.v for x in leds] == [0, 0, 0]
+assert b.v == 0
 i.close()
-print("PASS: 18 alert / indicator regression checks")
+print("PASS: All alert / indicator regression checks")

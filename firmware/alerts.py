@@ -36,16 +36,22 @@ class AlertController:
         elif leak_detected is None and self.state == LEAK_DETECTED:
             self._normal_samples = 0
             desired = LEAK_DETECTED
-        elif leak_detected is None or not valid_weight:
-            self._normal_samples = 0
-            desired = FAULT
         elif self.state == LEAK_DETECTED:
             if fresh_sample:
                 self._normal_samples += 1
             if self._normal_samples < self.clear_samples:
                 desired = LEAK_DETECTED
             else:
-                desired = LOW_GAS if gas_percent <= 20 else NORMAL
+                self._normal_samples = 0
+                if not valid_weight:
+                    desired = FAULT
+                else:
+                    desired = LOW_GAS if gas_percent <= 20 else NORMAL
+
+        elif leak_detected is None or not valid_weight:
+            self._normal_samples = 0
+            desired = FAULT
+
         else:
             self._normal_samples = 0
             desired = LOW_GAS if gas_percent <= 20 else NORMAL
